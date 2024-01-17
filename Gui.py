@@ -1,6 +1,7 @@
 import tkinter as tk
 import numpy as np
 from PIL import Image, ImageTk
+import tkinter.ttk as ttk
 
 
 def create_image_label(path, row, column):
@@ -11,7 +12,7 @@ def create_image_label(path, row, column):
 
     label = tk.Label(image=photo_thumbnail)
     label.image = photo_thumbnail
-    label.grid(row=row, column=column)
+    label.grid(row=row, column=column, sticky="nsew")
 
     label.bind("<Button-1>", lambda e: open_enlarged_image(path))
 
@@ -51,11 +52,50 @@ def calculate_torque():
 
         result_label.config(text=f"Calculated Torque: {T:.2f} Nm")
     except ValueError:
-        result_label.config(text="Error: Please enter valid numbers")
+        result_label.config(text="Error: normal numbers")
+
+
+materials = {
+    "Steel": {"E": "200", "v": "0.3"},
+    "Aluminum": {"E": "70", "v": "0.33"},
+    "Copper": {"E": "120", "v": "0.34"},
+    "Brass": {"E": "100", "v": "0.35"},
+    "Nickel": {"E": "200", "v": "0.3"},
+    "Zamak": {"E": "96", "v": "0.33"},
+}
+
+
+def update_outer(event):
+    material = outer_material.get()
+    properties = materials.get(material, {})
+    entry_E0.delete(0, tk.END)
+    entry_E0.insert(0, properties.get("E", ""))
+    entry_v0.delete(0, tk.END)
+    entry_v0.insert(0, properties.get("v", ""))
+
+
+def update_inner(event):
+    material = inner_material.get()
+    properties = materials.get(material, {})
+    entry_Ei.delete(0, tk.END)
+    entry_Ei.insert(0, properties.get("E", ""))
+    entry_vi.delete(0, tk.END)
+    entry_vi.insert(0, properties.get("v", ""))
 
 
 root = tk.Tk()
 root.title("Torque Calculator")
+
+tk.Label(root, text="Select Material for Outside:").grid(row=13, column=0)
+outer_material = ttk.Combobox(root, values=list(materials.keys()))
+outer_material.grid(row=13, column=1)
+outer_material.bind("<<ComboboxSelected>>", update_outer)
+
+
+tk.Label(root, text="Select Material for inner:").grid(row=14, column=0)
+inner_material = ttk.Combobox(root, values=list(materials.keys()))
+inner_material.grid(row=14, column=1)
+inner_material.bind("<<ComboboxSelected>>", update_inner)
 
 
 tk.Label(root, text="E_0 (GPa):").grid(row=0, column=0)
@@ -112,10 +152,15 @@ entry_u.grid(row=9, column=1)
 calculate_button = tk.Button(root, text="Calculate Torque", command=calculate_torque)
 calculate_button.grid(row=11, column=0, columnspan=2)
 
+for i in range(15):
+    root.grid_rowconfigure(i, weight=1)
+for i in range(2):
+    root.grid_columnconfigure(i, weight=1)
+
 
 result_label = tk.Label(root, text="Calculated Torque: ")
 result_label.grid(row=12, column=0, columnspan=2)
 create_image_label("diagram.png", row=10, column=0)
 create_image_label("formula.png", row=10, column=1)
-# Start the GUI loop
+
 root.mainloop()
